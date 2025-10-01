@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 void main() {
   runApp(MyApp());
@@ -36,7 +37,7 @@ class SwipeableScreens extends StatelessWidget {
   final bool isDarkMode;
   final VoidCallback onThemeToggle;
 
-  SwipeableScreens({required this.isDarkMode, required this.onThemeToggle});
+  const SwipeableScreens({super.key, required this.isDarkMode, required this.onThemeToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +63,7 @@ class FadingTextAnimation extends StatefulWidget {
   final VoidCallback onThemeToggle;
   final int screenNumber;
 
-  FadingTextAnimation({
+  const FadingTextAnimation({super.key, 
     required this.isDarkMode,
     required this.onThemeToggle,
     required this.screenNumber,
@@ -74,12 +75,50 @@ class FadingTextAnimation extends StatefulWidget {
 
 class _FadingTextAnimationState extends State<FadingTextAnimation> {
   bool _isVisible = true;
-  bool _showFrame = false;
+  Color _textColor = Colors.black;
 
   void toggleVisibility() {
     setState(() {
       _isVisible = !_isVisible;
     });
+  }
+
+  void showColorPicker() {
+    Color tempColor = _textColor;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose Text Color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: _textColor,
+              onColorChanged: (color) {
+                tempColor = color;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _textColor = tempColor;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Select'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -91,6 +130,10 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
       appBar: AppBar(
         title: Text('Fading Text Animation ${widget.screenNumber}'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.color_lens),
+            onPressed: showColorPicker,
+          ),
           IconButton(
             icon: Icon(widget.isDarkMode ? Icons.nightlight_round : Icons.wb_sunny),
             onPressed: widget.onThemeToggle,
@@ -104,15 +147,6 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
             GestureDetector(
               onTap: toggleVisibility,
               child: Container(
-                decoration: _showFrame
-                    ? BoxDecoration(
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 3,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      )
-                    : null,
                 padding: const EdgeInsets.all(16),
                 child: AnimatedOpacity(
                   opacity: _isVisible ? 1.0 : 0.0,
@@ -120,7 +154,7 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
                   curve: Curves.easeInOut,
                   child: Text(
                     text,
-                    style: const TextStyle(fontSize: 24),
+                    style: TextStyle(fontSize: 24, color: _textColor),
                   ),
                 ),
               ),
