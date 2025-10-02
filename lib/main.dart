@@ -75,11 +75,28 @@ class FadingTextAnimation extends StatefulWidget {
 
 class _FadingTextAnimationState extends State<FadingTextAnimation> {
   bool _isVisible = true;
+  bool _isSpinning = false;
   Color _textColor = Colors.black;
 
   void toggleVisibility() {
     setState(() {
       _isVisible = !_isVisible;
+    });
+  }
+
+  void spinAndFade() {
+    setState(() {
+      _isVisible = !_isVisible;
+      _isSpinning = true;
+    });
+    
+    // Reset spinning after animation completes
+    Future.delayed(Duration(seconds: widget.screenNumber == 1 ? 1 : 3), () {
+      if (mounted) {
+        setState(() {
+          _isSpinning = false;
+        });
+      }
     });
   }
 
@@ -125,6 +142,7 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
   Widget build(BuildContext context) {
     int duration = widget.screenNumber == 1 ? 1 : 3;
     String text = widget.screenNumber == 1 ? 'Hello, Flutter!' : 'Very Slow Fade Animation';
+    double rotation = _isSpinning ? -6.28 : 0.0; // -6.28 radians = full rotation anticlockwise
 
     return Scaffold(
       appBar: AppBar(
@@ -152,12 +170,22 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
                   opacity: _isVisible ? 1.0 : 0.0,
                   duration: Duration(seconds: duration),
                   curve: Curves.easeInOut,
-                  child: Text(
-                    text,
-                    style: TextStyle(fontSize: 24, color: _textColor),
+                  child: AnimatedRotation(
+                    turns: rotation / 6.28, // Convert radians to turns
+                    duration: Duration(seconds: duration),
+                    curve: Curves.easeInOut,
+                    child: Text(
+                      text,
+                      style: TextStyle(fontSize: 24, color: _textColor),
+                    ),
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: spinAndFade,
+              child: const Text('Spin and Fade'),
             ),
             const SizedBox(height: 30),
             Row(
